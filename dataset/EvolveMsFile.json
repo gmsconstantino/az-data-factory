@@ -1,0 +1,114 @@
+{
+	"name": "EvolveMsFile",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "storageintegrationhub",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Excel",
+		"typeProperties": {
+			"sheetName": "IG&H resources",
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "Employee data for Evolve_DEV_MasterData_V3.xlsx",
+				"container": "evolvems"
+			},
+			"firstRowAsHeader": true
+		},
+		"schema": [
+			{
+				"name": "First Name",
+				"type": "String"
+			},
+			{
+				"name": "Last Name",
+				"type": "String"
+			},
+			{
+				"name": "Resource Name",
+				"type": "String"
+			},
+			{
+				"name": "Group",
+				"type": "String"
+			},
+			{
+				"name": "Email",
+				"type": "String"
+			},
+			{
+				"name": "Business unit",
+				"type": "String"
+			},
+			{
+				"name": "Gender",
+				"type": "String"
+			},
+			{
+				"name": "Date of birth",
+				"type": "String"
+			},
+			{
+				"name": "Job role",
+				"type": "String"
+			},
+			{
+				"name": "SalaryGrid",
+				"type": "String"
+			},
+			{
+				"name": "Level",
+				"type": "String"
+			},
+			{
+				"name": "Employment date",
+				"type": "String"
+			},
+			{
+				"name": "Parttime percentage",
+				"type": "String"
+			},
+			{
+				"name": "Leadership",
+				"type": "String"
+			},
+			{
+				"name": "Senior leadership",
+				"type": "String"
+			},
+			{
+				"name": "Mentor",
+				"type": "String"
+			},
+			{
+				"name": "Evaluator",
+				"type": "String"
+			},
+			{
+				"name": "Country",
+				"type": "String"
+			},
+			{
+				"name": "DirectorTeam",
+				"type": "String"
+			},
+			{
+				"name": "Director Leadership",
+				"type": "String"
+			},
+			{
+				"name": "Director Senior Leadership",
+				"type": "String"
+			},
+			{
+				"name": "InUsers",
+				"type": "String"
+			},
+			{
+				"name": "EvInList",
+				"type": "String"
+			}
+		]
+	}
+}
