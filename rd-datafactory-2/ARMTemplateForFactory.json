@@ -1,0 +1,274 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "rd-datafactory-2"
+		},
+		"storageintegrationhub_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'storageintegrationhub'"
+		},
+		"CosmosDb1_connectionString": {
+			"type": "secureString",
+			"metadata": "Secure string for 'connectionString' of 'CosmosDb1'"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/storageintegrationhub')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "AzureBlobStorage",
+				"typeProperties": {
+					"connectionString": "[parameters('storageintegrationhub_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/EvolveMsFile')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "storageintegrationhub",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "Excel",
+				"typeProperties": {
+					"sheetName": "IG&H resources",
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Employee data for Evolve_DEV_MasterData_V3.xlsx",
+						"container": "evolvems"
+					},
+					"firstRowAsHeader": true
+				},
+				"schema": [
+					{
+						"name": "First Name",
+						"type": "String"
+					},
+					{
+						"name": "Last Name",
+						"type": "String"
+					},
+					{
+						"name": "Resource Name",
+						"type": "String"
+					},
+					{
+						"name": "Group",
+						"type": "String"
+					},
+					{
+						"name": "Email",
+						"type": "String"
+					},
+					{
+						"name": "Business unit",
+						"type": "String"
+					},
+					{
+						"name": "Gender",
+						"type": "String"
+					},
+					{
+						"name": "Date of birth",
+						"type": "String"
+					},
+					{
+						"name": "Job role",
+						"type": "String"
+					},
+					{
+						"name": "SalaryGrid",
+						"type": "String"
+					},
+					{
+						"name": "Level",
+						"type": "String"
+					},
+					{
+						"name": "Employment date",
+						"type": "String"
+					},
+					{
+						"name": "Parttime percentage",
+						"type": "String"
+					},
+					{
+						"name": "Leadership",
+						"type": "String"
+					},
+					{
+						"name": "Senior leadership",
+						"type": "String"
+					},
+					{
+						"name": "Mentor",
+						"type": "String"
+					},
+					{
+						"name": "Evaluator",
+						"type": "String"
+					},
+					{
+						"name": "Country",
+						"type": "String"
+					},
+					{
+						"name": "DirectorTeam",
+						"type": "String"
+					},
+					{
+						"name": "Director Leadership",
+						"type": "String"
+					},
+					{
+						"name": "Director Senior Leadership",
+						"type": "String"
+					},
+					{
+						"name": "InUsers",
+						"type": "String"
+					},
+					{
+						"name": "EvInList",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/storageintegrationhub')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/dataflow1')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "EvolveMsFile",
+								"type": "DatasetReference"
+							},
+							"name": "EvolveMsFile"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ItemsCosmosDbSql",
+								"type": "DatasetReference"
+							},
+							"name": "SinkToItemsDB"
+						}
+					],
+					"transformations": [
+						{
+							"name": "select1"
+						}
+					],
+					"script": "source(output(\n\t\t{First Name} as string,\n\t\t{Last Name} as string,\n\t\t{Resource Name} as string,\n\t\tGroup as string,\n\t\tEmail as string,\n\t\t{Business unit} as string,\n\t\tGender as string,\n\t\t{Date of birth} as date,\n\t\t{Job role} as string,\n\t\tSalaryGrid as string,\n\t\tLevel as string,\n\t\t{Employment date} as date,\n\t\t{Parttime percentage} as string,\n\t\tLeadership as string,\n\t\t{Senior leadership} as string,\n\t\tMentor as string,\n\t\tEvaluator as string,\n\t\tCountry as string,\n\t\tDirectorTeam as string,\n\t\t{Director Leadership} as string,\n\t\t{Director Senior Leadership} as string,\n\t\tInUsers as string,\n\t\tEvInList as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> EvolveMsFile\nEvolveMsFile select(mapColumn(\n\t\t{First Name},\n\t\t{Last Name},\n\t\t{Resource Name},\n\t\tGroup,\n\t\tEmail,\n\t\t{Business unit},\n\t\tGender,\n\t\t{Date of birth},\n\t\t{Job role},\n\t\tSalaryGrid,\n\t\tLevel,\n\t\t{Employment date},\n\t\t{Parttime percentage},\n\t\tLeadership,\n\t\t{Senior leadership},\n\t\tMentor,\n\t\tEvaluator,\n\t\tCountry,\n\t\tDirectorTeam,\n\t\t{Director Leadership},\n\t\t{Director Senior Leadership},\n\t\tInUsers,\n\t\tEvInList\n\t),\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> select1\nselect1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'document',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true) ~> SinkToItemsDB"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/EvolveMsFile')]",
+				"[concat(variables('factoryId'), '/datasets/ItemsCosmosDbSql')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CosmosDb1')]",
+			"type": "Microsoft.DataFactory/factories/linkedServices",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"type": "CosmosDb",
+				"typeProperties": {
+					"connectionString": "[parameters('CosmosDb1_connectionString')]"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/ItemsCosmosDbSql')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "CosmosDb1",
+					"type": "LinkedServiceReference"
+				},
+				"annotations": [],
+				"type": "CosmosDbSqlApiCollection",
+				"schema": {},
+				"typeProperties": {
+					"collectionName": "Items"
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/CosmosDb1')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/pipeline1')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "dataflow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "1.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "dataflow1",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"EvolveMsFile": {},
+									"SinkToItemsDB": {}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {},
+					"cancelAfter": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/dataflow1')]"
+			]
+		}
+	]
+}
